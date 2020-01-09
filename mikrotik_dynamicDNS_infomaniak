@@ -2,6 +2,7 @@
 # https://wiki.mikrotik.com/wiki/Dynamic_DNS_Update_Script_for_dynDNS
 # https://wiki.mikrotik.com/wiki/Dynamic_DNS_Update_Script_for_No-IP_DNS
 # https://www.infomaniak.com/en/support/faq/2376/dynamic-dns-updating-a-dynamic-dns-via-the-api
+#
 
 :local username "username"
 :local password "password"
