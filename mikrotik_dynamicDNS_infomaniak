@@ -1,0 +1,60 @@
+# based on : 
+# https://wiki.mikrotik.com/wiki/Dynamic_DNS_Update_Script_for_dynDNS
+# https://wiki.mikrotik.com/wiki/Dynamic_DNS_Update_Script_for_No-IP_DNS
+# https://www.infomaniak.com/en/support/faq/2376/dynamic-dns-updating-a-dynamic-dns-via-the-api
+
+:local username "username"
+:local password "password"
+:local hostname "subdomain.domain.tld"
+
+:local url "dummy"
+:local previousIP
+
+:log info "Update Infomaniak dynamic dns: starts"
+
+:if ([:len [/file find name=infomaniak.txt]] > 0) do={
+   :local ipfile [/file get infomaniak.txt contents]
+   :local ipstart ([find $ipfile " " -1] + 1)
+   :local ipend ([:len $ipfile])
+   :set previousIP [:pick $ipfile $ipstart $ipend]
+} else={
+   :set previousIP "0.0.0.0"
+}
+:log info ("Update Infomaniak dynamic dns: previousIP = $previousIP")
+
+# get the current IP address from the internet (in case of double-nat)
+/tool fetch mode=http address="checkip.dyn.com" src-path="/" dst-path="/infomaniak.checkip.html"
+:delay 1
+:local result [/file get infomaniak.checkip.html contents]
+
+# parse the current IP result
+:local resultLen [:len $result]
+:local startLoc ([:find $result ": " -1] + 2)
+:local endLoc [:find $result "</body>" -1]
+:local currentIP [:pick $result $startLoc $endLoc]
+
+:log info ("Update Infomaniak dynamic dns: previousIP = ===".$previousIP."=== currentIP = ===".$currentIP."===")
+
+:if ($currentIP != $previousIP) do={
+	:log info "Update Infomaniak dynamic dns: Current IP $currentIP is not equal to previous IP, update needed"
+
+	# The update URL. Note the "\3F" is hex for question mark (?). Required since ? is a special character in commands.
+	:local url "https://infomaniak.com/nic/update\3Fhostname=$hostname&myip=$currentIP"
+
+	:log info "Update Infomaniak dynamic dns: Sending update for $hostname"
+	/tool fetch url=($url) user=$username password=$password mode=https dst-path=("infomaniak.txt")
+	
+	:delay 1
+	:log info "Update Infomaniak dynamic dns: Host $hostname updated with IP $currentIP"
+
+	:delay 1
+	:local result [/file get infomaniak.txt contents]
+	:log info "Update Infomaniak dynamic dns : infomaniak Update Result: $result ==="
+
+}  else={
+	:log info "Update Infomaniak dynamic dns: Previous IP $previousIP is equal to current IP, no update needed"
+}
+
+
+
+ 
