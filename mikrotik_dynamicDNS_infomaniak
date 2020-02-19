@@ -4,6 +4,10 @@
 # https://www.infomaniak.com/en/support/faq/2376/dynamic-dns-updating-a-dynamic-dns-via-the-api
 #
 
+# version
+# 1.0 # does the job
+#
+
 :local username "username"
 :local password "password"
 :local hostname "subdomain.domain.tld"
